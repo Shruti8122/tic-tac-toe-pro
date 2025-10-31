@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tic Tac Toe</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap');
+
+    :root {
+      --primary-color: #3a86ff;
+      --secondary-color: #ff3b6f;
+      --bg-start: #a1c4fd;
+      --bg-end: #c2e9fb;
+      --white-op-light: rgba(255, 255, 255, 0.2);
+      --white-op-medium: rgba(255, 255, 255, 0.4);
+      --white-op-heavy: rgba(255, 255, 255, 0.7);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Poppins", sans-serif;
+    }
+
+    body {
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      background: linear-gradient(135deg, var(--bg-start), var(--bg-end));
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #fff;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      font-weight: 700;
+      text-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+      letter-spacing: 1px;
+    }
+
+    /* Scoreboard */
+    .scoreboard-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .current-turn {
+      margin-bottom: 10px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+      padding: 5px 15px;
+      border-radius: 20px;
+      background: var(--white-op-light);
+      box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+    }
+
+    .current-turn b {
+      transition: color 0.3s ease;
+    }
+
+    .current-turn.X-turn b {
+      color: var(--primary-color);
+    }
+
+    .current-turn.O-turn b {
+      color: var(--secondary-color);
+    }
+
+    .scoreboard {
+      display: flex;
+      gap: 20px;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 500;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+    }
+
+    .scoreboard span {
+      background: var(--white-op-light);
+      padding: 8px 18px;
+      border-radius: 15px;
+      backdrop-filter: blur(5px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      transition: transform 0.2s ease;
+    }
+    .scoreboard span:hover {
+      transform: translateY(-2px);
+    }
+
+    /* Mode selector */
+    .mode {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      background: var(--white-op-light);
+      padding: 10px 20px;
+      border-radius: 50px;
+      backdrop-filter: blur(10px);
+      margin-bottom: 25px;
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 500;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2),
+        inset 0 0 5px var(--white-op-medium);
+      transition: 0.3s ease;
+    }
+
+    select {
+      background: transparent;
+      color: #fff;
+      border: none;
+      font-weight: 600;
+      font-size: 1rem;
+      outline: none;
+      cursor: pointer;
+      padding: 5px 10px;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23ffffff%22%20d%3D%22M287%20220.4l-11.3%2011.3L146.2%2090.8L11.3%20231.7L0%20220.4l146.2-146.2z%22%2F%3E%3C%2Fsvg%3E');
+      background-repeat: no-repeat;
+      background-position: right 10px top 50%;
+      background-size: 12px;
+      padding-right: 30px;
+    }
+
+    option {
+      color: #333;
+      background: #fff;
+    }
+
+    /* Board */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-template-rows: repeat(3, 110px);
+      gap: 12px;
+      background: var(--white-op-medium);
+      padding: 20px;
+      border-radius: 25px;
+      backdrop-filter: blur(15px);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      perspective: 1000px;
+    }
+
+    .cell {
+      width: 110px;
+      height: 110px;
+      background: var(--white-op-light);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 3rem;
+      font-weight: 700;
+      color: transparent;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      transform-style: preserve-3d;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      user-select: none;
+    }
+
+    .cell:hover:not(.X):not(.O) {
+      background: var(--white-op-medium);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .cell.X {
+      color: var(--primary-color);
+      text-shadow: 0 0 10px rgba(0, 123, 255, 0.7);
+      animation: popIn 0.3s ease-out;
+      pointer-events: none;
+    }
+
+    .cell.O {
+      color: var(--secondary-color);
+      text-shadow: 0 0 10px rgba(255, 59, 111, 0.7);
+      animation: popIn 0.3s ease-out;
+      pointer-events: none;
+    }
+
+    .cell.win {
+      background: var(--white-op-heavy);
+      box-shadow: 0 0 20px var(--white-op-heavy),
+        inset 0 0 10px var(--white-op-medium);
+      animation: pulseWin 0.8s infinite alternate;
+    }
+
+    @keyframes popIn {
+      from {
+        transform: scale(0.5) rotateY(90deg);
+        opacity: 0;
+      }
+      to {
+        transform: scale(1) rotateY(0deg);
+        opacity: 1;
+      }
+    }
+
+    @keyframes pulseWin {
+      from {
+        transform: scale(1);
+      }
+      to {
+        transform: scale(1.05);
+      }
+    }
+
+    /* Popup */
+    .popup-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .popup-backdrop.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+
+    .popup {
+      background: #ffffff;
+      padding: 40px 60px;
+      border-radius: 25px;
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+      z-index: 10;
+      transform: scale(0.8);
+      max-width: 100%;
+    }
+
+    .popup.active {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1);
+    }
+
+    .popup h2 {
+      margin-bottom: 5px;
+      font-size: 2.2rem;
+      color: #333;
+    }
+
+    .popup span {
+      font-size: 3rem;
+      display: block;
+      margin-bottom: 25px;
+    }
+
+    button {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      transition: all 0.25s ease;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    button:hover {
+      background-color: #265ee6;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+    }
+
+    /* ✅ Restart button */
+    .restart-btn {
+      margin-top: 20px;
+      font-size: 1.8rem;
+      color: #fff;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+      text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    .restart-btn:hover {
+      transform: rotate(180deg);
+    }
+
+    footer {
+      margin-top: 25px;
+      font-size: 0.85rem;
+      color: #fff;
+      opacity: 0.7;
+    }
+
+    @media (max-width: 420px) {
+      .board {
+        grid-template-columns: repeat(3, 86px);
+        grid-template-rows: repeat(3, 86px);
+        gap: 10px;
+        padding: 16px;
+      }
+      .cell {
+        width: 86px;
+        height: 86px;
+        font-size: 2.3rem;
+        border-radius: 14px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="mode">
+    Mode:
+    <select id="modeSelect">
+      <option value="pvp">Player vs Player</option>
+      <option value="ai">Player vs AI</option>
+    </select>
+  </div>
+
+  <div class="scoreboard-container">
+    <div class="current-turn X-turn">
+      Current Turn: <b id="currentTurnIcon">X</b>
+    </div>
+    <div class="scoreboard">
+      <span>X Wins: <b id="xScore">0</b></span>
+      <span>O Wins: <b id="oScore">0</b></span>
+      <span>Draws: <b id="drawScore">0</b></span>
+    </div>
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <!-- ✅ Restart Button Added -->
+  <div class="restart-btn" id="restartLogo">🔄</div>
+
+  <div class="popup-backdrop" id="popupBackdrop">
+    <div class="popup" id="popup">
+      <h2 id="popupText"></h2>
+      <span id="popupIcon"></span>
+      <button id="playAgainBtn">Play Again</button>
+    </div>
+  </div>
+
+  <script>
+    const board = document.getElementById("board");
+    const popup = document.getElementById("popup");
+    const popupBackdrop = document.getElementById("popupBackdrop");
+    const popupText = document.getElementById("popupText");
+    const popupIcon = document.getElementById("popupIcon");
+    const playBtn = document.getElementById("playAgainBtn");
+    const modeSelect = document.getElementById("modeSelect");
+    const restartLogo = document.getElementById("restartLogo");
+
+    const xScoreEl = document.getElementById("xScore");
+    const oScoreEl = document.getElementById("oScore");
+    const drawScoreEl = document.getElementById("drawScore");
+    const currentTurnContainer = document.querySelector(".current-turn");
+    const currentTurnIcon = document.getElementById("currentTurnIcon");
+
+    let currentPlayer = "X";
+    let cells = Array(9).fill("");
+    let scores = { X: 0, O: 0, draw: 0 };
+    let mode = "pvp";
+    let gameOver = false;
+
+    function updateTurnIndicator() {
+      currentTurnIcon.textContent = currentPlayer;
+      currentTurnContainer.classList.remove("X-turn", "O-turn");
+      currentTurnContainer.classList.add(`${currentPlayer}-turn`);
+    }
+
+    modeSelect.addEventListener("change", () => {
+      mode = modeSelect.value;
+      resetGame();
+    });
+
+    for (let i = 0; i < 9; i++) {
+      const cell = document.createElement("div");
+      cell.classList.add("cell");
+      cell.dataset.index = i;
+      board.appendChild(cell);
+    }
+
+    const cellElements = document.querySelectorAll(".cell");
+
+    const winPatterns = [
+      [0, 1, 2],
+      [3, 4, 5],
+      [6, 7, 8],
+      [0, 3, 6],
+      [1, 4, 7],
+      [2, 5, 8],
+      [0, 4, 8],
+      [2, 4, 6],
+    ];
+
+    function highlightWin(pattern) {
+      pattern.forEach((i) => cellElements[i].classList.add("win"));
+    }
+
+    function checkWinner() {
+      for (let pattern of winPatterns) {
+        const [a, b, c] = pattern;
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) {
+          scores[cells[a]]++;
+          updateScoreboard();
+          highlightWin(pattern);
+          showPopup(`${cells[a]} Wins!`, cells[a] === "X" ? "🏆" : "🎉");
+          gameOver = true;
+          return true;
+        }
+      }
+      if (cells.every((cell) => cell !== "")) {
+        scores.draw++;
+        updateScoreboard();
+        showPopup("It's a Draw!", "✋");
+        gameOver = true;
+        return true;
+      }
+      return false;
+    }
+
+    function updateScoreboard() {
+      xScoreEl.textContent = scores.X;
+      oScoreEl.textContent = scores.O;
+      drawScoreEl.textContent = scores.draw;
+    }
+
+    function showPopup(msg, icon) {
+      popupText.textContent = msg;
+      popupIcon.textContent = icon;
+      popupBackdrop.classList.add("active");
+      popup.classList.add("active");
+    }
+
+    function closePopup() {
+      popupBackdrop.classList.remove("active");
+      popup.classList.remove("active");
+    }
+
+    cellElements.forEach((cell) => {
+      cell.addEventListener("click", () => {
+        const i = +cell.dataset.index;
+        if (!cells[i] && !gameOver) {
+          cells[i] = currentPlayer;
+          cell.textContent = currentPlayer;
+          cell.classList.add(currentPlayer);
+          if (!checkWinner()) {
+            if (mode === "pvp") {
+              currentPlayer = currentPlayer === "X" ? "O" : "X";
+              updateTurnIndicator();
+            } else if (mode === "ai" && currentPlayer === "X") {
+              currentPlayer = "O";
+              updateTurnIndicator();
+              setTimeout(() => !gameOver && aiMove(), 600);
+            }
+          }
+        }
+      });
+    });
+
+    function checkTerminal(cells) {
+      for (let p of winPatterns) {
+        const [a, b, c] = p;
+        if (cells[a] && cells[a] === cells[b] && cells[a] === cells[c]) return cells[a];
+      }
+      return cells.every((c) => c) ? "Draw" : null;
+    }
+
+    function minimax(cells, depth, isMax) {
+      const winner = checkTerminal(cells);
+      if (winner === "O") return 10 - depth;
+      if (winner === "X") return -10 + depth;
+      if (winner === "Draw") return 0;
+
+      if (isMax) {
+        let best = -Infinity;
+        for (let i = 0; i < 9; i++)
+          if (!cells[i]) {
+            cells[i] = "O";
+            best = Math.max(best, minimax(cells, depth + 1, false));
+            cells[i] = "";
+          }
+        return best;
+      } else {
+        let best = Infinity;
+        for (let i = 0; i < 9; i++)
+          if (!cells[i]) {
+            cells[i] = "X";
+            best = Math.min(best, minimax(cells, depth + 1, true));
+            cells[i] = "";
+          }
+        return best;
+      }
+    }
+
+    function findBestMove() {
+      let bestScore = -Infinity;
+      let move = null;
+      let emptyIndices = cells.map((val, i) => (val === "" ? i : null)).filter(v => v !== null);
+
+      if (emptyIndices.length === 0) return null;
+
+      for (let i of emptyIndices) {
+        cells[i] = "O";
+        let score = minimax(cells, 0, false);
+        cells[i] = "";
+
+        if (score > bestScore) {
+          bestScore = score;
+          move = i;
+        }
+      }
+      return move;
+    }
+
+    function aiMove() {
+      if (gameOver) return;
+      let bestMove = findBestMove();
+      if (bestMove !== null) {
+        requestAnimationFrame(() => {
+          if (gameOver) return;
+          cells[bestMove] = "O";
+          cellElements[bestMove].textContent = "O";
+          cellElements[bestMove].classList.add("O");
+          if (!checkWinner()) {
+            currentPlayer = "X";
+            updateTurnIndicator();
+          }
+        });
+      }
+    }
+
+    function resetGame() {
+      cells.fill("");
+      cellElements.forEach(cell => {
+        cell.textContent = "";
+        cell.classList.remove("X", "O", "win");
+      });
+      currentPlayer = "X";
+      gameOver = false;
+      updateTurnIndicator();
+      closePopup();
+    }
+
+    playBtn.addEventListener("click", resetGame);
+    restartLogo.addEventListener("click", resetGame);
+
+    popupBackdrop.addEventListener("click", (e) => {
+      if (e.target === popupBackdrop) closePopup();
+    });
+
+    updateTurnIndicator();
+  </script>
+</body>
+</html>
